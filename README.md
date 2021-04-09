@@ -19,7 +19,7 @@ import (
 	"log"
 	"net/http"
 
-	Neo4jGraphQL "github.com/danstarns/neo4j-graphql-go"
+	neo4jGraphQL "github.com/danstarns/neo4j-graphql-go"
 	"github.com/graphql-go/graphql"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
@@ -41,7 +41,7 @@ func main() {
 		}
 	`
 
-	neoSchema := Neo4jGraphQL(&Neo4jGraphQL.Constructor{typeDefs, driver})
+	neoSchema := neo4jGraphQL.NewSchema(&neo4jGraphQL.Constructor{typeDefs, driver})
 
 	http.HandleFunc("/graphql", func(w http.ResponseWriter, req *http.Request) {
 		var p postData
