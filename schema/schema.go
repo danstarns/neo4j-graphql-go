@@ -7,6 +7,8 @@ import (
 	"github.com/danstarns/neo4j-graphql-go/node"
 	"github.com/danstarns/neo4j-graphql-go/translate"
 	"github.com/danstarns/neo4j-graphql-go/types"
+	"github.com/danstarns/neo4j-graphql-go/util"
+	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
@@ -54,11 +56,14 @@ func MakeAugmentedSchema(input types.Constructor) graphql.Schema {
 
 				cypher, params := translate.TranslateRead(readInput)
 
-				fmt.Println(cypher)
-				fmt.Println(params)
+				result := util.Execute(util.ExecuteInput{
+					Driver:     input.Driver,
+					AccessMode: neo4j.AccessModeRead,
+					Cypher:     cypher,
+					Params:     params,
+				})
 
-				var ashjs []interface{}
-				return ashjs, nil
+				return result, nil
 			},
 		}
 

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+
+	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 )
 
 func deleteKey(keyToDelete string, val reflect.Value) reflect.Value {
@@ -38,4 +40,43 @@ func PrintDocumentWithoutLoc(document interface{}) {
 	deleteKey("Loc", reflect.ValueOf(p2))
 	jj, _ := json.MarshalIndent(p2, "", " ")
 	fmt.Println(string(jj))
+}
+
+type ExecuteInput struct {
+	Driver     neo4j.Driver
+	Cypher     string
+	Params     map[string]interface{}
+	AccessMode neo4j.AccessMode
+}
+
+func Execute(input ExecuteInput) interface{} {
+	session := input.Driver.NewSession(neo4j.SessionConfig{AccessMode: input.AccessMode})
+	defer session.Close()
+
+	res, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		records, err := tx.Run(
+			input.Cypher,
+			input.Params,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		var results []interface{}
+
+		for records.Next() {
+			record := records.Record()
+			results = append(results, record.Values[0])
+		}
+
+		return results, nil
+	})
+
+	if err != nil {
+		fmt.Println("failed to execute")
+		panic(err)
+	}
+
+	return res
 }
