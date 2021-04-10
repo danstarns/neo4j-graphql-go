@@ -5,7 +5,10 @@ Exploratory Neo4j GraphQL Golang Implementation
 ## Installation
 
 ```
-$ go get github.com/neo4j/neo4j-go-driver/v4/neo4j github.com/danstarns/neo4j-graphql-go github.com/graphql-go/handler
+$ go get \
+	github.com/neo4j/neo4j-go-driver/v4/neo4j \
+	github.com/danstarns/neo4j-graphql-go \
+	github.com/graphql-go/handler
 ```
 
 ## Quick Start
@@ -19,13 +22,16 @@ import (
 
 	neo4jGraphQL "github.com/danstarns/neo4j-graphql-go"
 	neo4jGraphQLTypes "github.com/danstarns/neo4j-graphql-go/types"
-
 	"github.com/graphql-go/handler"
+
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 )
 
 func main() {
-	driver, _ := neo4j.NewDriver("bolt://localhost:7687", neo4j.BasicAuth("admin", "password", ""))
+	driver, _ := neo4j.NewDriver(
+		"bolt://localhost:7687",
+		neo4j.BasicAuth("admin", "password", "")
+	)
 
 	typeDefs := `
 		type Movie {
@@ -48,5 +54,4 @@ func main() {
 
 	fmt.Println("http://localhost:8080")
 }
-
 ```
