@@ -30,7 +30,7 @@ import (
 func main() {
 	driver, _ := neo4j.NewDriver(
 		"bolt://localhost:7687",
-		neo4j.BasicAuth("admin", "password", "")
+		neo4j.BasicAuth("admin", "password", ""),
 	)
 
 	typeDefs := `
@@ -41,7 +41,12 @@ func main() {
 		}
 	`
 
-	neoSchema := neo4jGraphQL.NewSchema(neo4jGraphQLTypes.Constructor{TypeDefs: typeDefs, Driver: driver})
+	neoSchema := neo4jGraphQL.NewSchema(
+		neo4jGraphQLTypes.Constructor{
+			TypeDefs: typeDefs,
+			Driver:   driver,
+		},
+	)
 
 	handler := handler.New(&handler.Config{
 		Schema:   &neoSchema.Schema,
@@ -54,4 +59,5 @@ func main() {
 
 	fmt.Println("http://localhost:8080")
 }
+
 ```
