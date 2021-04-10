@@ -1,26 +1,72 @@
 package schema
 
 import (
+	"encoding/json"
 	"fmt"
 
+	"github.com/danstarns/neo4j-graphql-go/node"
+	"github.com/danstarns/neo4j-graphql-go/translate"
 	"github.com/danstarns/neo4j-graphql-go/types"
 
 	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/graphql/language/ast"
+	"github.com/graphql-go/graphql/language/parser"
 )
 
 func MakeAugmentedSchema(input types.Constructor) graphql.Schema {
-	fields := graphql.Fields{
-		"hello": &graphql.Field{
-			Type: graphql.String,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				return "world", nil
-			},
-		},
+	document, err := parser.Parse(parser.ParseParams{Source: input.TypeDefs})
+	if err != nil {
+		fmt.Println("Cannot parse typeDefs")
+		panic(err)
 	}
 
-	rootQuery := graphql.ObjectConfig{Name: "RootQuery", Fields: fields}
+	var nodes []node.Node
 
-	schemaConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery)}
+	for _, value := range document.Definitions {
+		if value.GetKind() == "ObjectDefinition" {
+			var p2 ast.ObjectDefinition
+			j, _ := json.Marshal(value)
+			json.Unmarshal(j, &p2)
+			nodes = append(nodes, node.NewNode(p2))
+		}
+	}
+
+	queryFields := graphql.Fields{}
+	var types []graphql.Type
+
+	for _, n := range nodes {
+		var fields = graphql.Fields{}
+		for _, prim := range n.PrimitiveFields {
+			f := graphql.Field{Type: graphql.String}
+			fields[prim.FieldName] = &f
+		}
+
+		o := graphql.NewObject(graphql.ObjectConfig{Name: n.Name, Fields: fields})
+		types = append(types, o)
+
+		queryFields[n.Name] = &graphql.Field{
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull((o)))),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				readInput := translate.TranslateReadInput{
+					Node:          n,
+					ResolveParams: p,
+				}
+
+				cypher, params := translate.TranslateRead(readInput)
+
+				fmt.Println(cypher)
+				fmt.Println(params)
+
+				var ashjs []interface{}
+				return ashjs, nil
+			},
+		}
+
+	}
+
+	rootQuery := graphql.ObjectConfig{Name: "RootQuery", Fields: queryFields}
+
+	schemaConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery), Types: types}
 
 	graphQLSchema, err := graphql.NewSchema(schemaConfig)
 	if err != nil {
