@@ -2,6 +2,20 @@
 
 Exploratory Neo4j GraphQL Golang Implementation
 
+## TODO
+
+Highly Experimental as it stands can only do the schema generation and matching of a node and its properties.
+
+- [ ] `@relationship`
+- [ ] `@cypher`
+- [ ] `where`
+- [ ] `CREATE`
+- [ ] `UPDATE`
+- [ ] `DELETE`
+- [ ] Serialization & De-Serialization of params
+- [ ] Tests (TCK, unit, int)
+- [ ] Other Types and directives IE (DateTime `@id` ...)
+
 ## Installation
 
 ```
